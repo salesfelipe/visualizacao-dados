@@ -6,28 +6,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 	<link rel="icon" href="/favicon.ico" type="image/x-icon">
-	<title>D3</title>
+	<title>Lab 4 - Felipe Sales</title>
 
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto+Slab" rel="stylesheet">
 	<link href="../css/bootstrap.min.css" rel="stylesheet">
 	<link href="../css/main.css" rel="stylesheet">
 	<link href="../css/fonts.css" rel="stylesheet">
 	<style>
-    .populacao, .demanda {
-      stroke: #fff;
-      stroke-width: 0.8px;
-    }
     body {
-
-			background-color: #393E46;
+			background-color:#393E46;
     }
 
-		.container {
-			background-color: #F3F3F4;
+		.card {
+		  border-radius: 2px;
+		  display: inline-block;
+		  height: 300px;
+		  margin: 1rem;
+		  position: relative;
+		  width: 300px;
 		}
 
-		h3 {
-			color: #00ADB5;
+		.card-1 {
+		  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+		  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+		}
+
+		h3,h1 {
+			color: #ddd9ce;
+			text-align: center;
+		}
+
+		#verde{
+			color: rgba(0, 204, 102, 1);
+		}
+
+		#amarelo{
+			color: rgba(255, 210, 49, 1);
+		}
+
+		#azul{
+			color: rgba(34, 185, 187, 1);
 		}
 
 	</style>
@@ -35,16 +53,26 @@
 <body>
 
 	<div class="container">
-		<h3> Versão original: </h3>
 
+		<div class="row">
+				<h1> Dinâmica do uso da <span id="azul">água</span> no semiárido <span id="verde">b</span><span id="amarelo">r</span>asileiro. </h1>
+		</div>
     <div class="row">
-        <div class="col-md-3"></div>
 
-        <div class="col-md-6">
-        	<div id="chart"></div>
+        <div class="col-md-4">
+					<h3> Água Consumida </h3>
+        	<div class="card card-1" id="chartConsumo"></div>
         </div>
 
-        <div class="col-md-3"></div>
+        <div class="col-md-4">
+					<h3> Água Tratada </h3>
+					<div class="card card-1" id="chartTratado"></div>
+				</div>
+
+				<div class="col-md-4">
+					<h3> Esgoto Tratado </h3>
+					<div class="card card-1" id="chartEsgotoTratado"></div>
+				</div>
     </div>
 
 
@@ -57,61 +85,110 @@
   	<script src="https://d3js.org/topojson.v1.min.js"></script>
 	<script>
 		var
-		    width = 1000,
+		    width = 650,
 		    height = 700;
 
-		var svg = d3.select("#chart")
+		var svgConsumo = d3.select("#chartConsumo")
 				.append("svg")
 				.attr('version', '1.1')
 				.attr('viewBox', '0 0 '+width+' '+height)
 				.attr('width', '100%')
 				.attr('class', 'map-chart');
 
-	    var projection = d3.geoAlbers()
-	        .center([-41.031621, -7.403048])
-	        .rotate([0, 0])
-	        .parallels([0, 0])
-	        .scale(2400);
+		var svgTratado = d3.select("#chartTratado")
+				.append("svg")
+				.attr('version', '1.1')
+				.attr('viewBox', '0 0 '+width+' '+height)
+				.attr('width', '100%')
+				.attr('class', 'map-chart');
 
-	    var path = d3.geoPath().projection(projection);
+		var svgEsgotoTratado = d3.select("#chartEsgotoTratado")
+				.append("svg")
+				.attr('version', '1.1')
+				.attr('viewBox', '0 0 '+width+' '+height)
+				.attr('width', '100%')
+				.attr('class', 'map-chart');
 
-	    var demandaScale = d3.scaleThreshold();
+    var projection = d3.geoAlbers()
+        .center([-38.031621, -8.703048])
+        .rotate([0, 0])
+        .parallels([0, 0])
+        .scale(2600);
 
-			demandaScale
-			.domain([					0 				  	 ,											79,											158,										 317,									  	625, 									  1250, 									 2500,									  5000, 								  10000, 20000])
-				.range([d3.rgb(255, 210, 49, 0.1), d3.rgb(255, 210, 49, 0.2), d3.rgb(255, 210, 49, 0.3), d3.rgb(255, 210, 49, 0.4), d3.rgb(255, 210, 49, 0.5), d3.rgb(255, 210, 49, 0.6), d3.rgb(255, 210, 49, 0.7), d3.rgb(255, 210, 49, 0.8), d3.rgb(255, 210, 49, 0.9), d3.rgb(255, 210, 49, 1)]);
+    var path = d3.geoPath().projection(projection);
 
-			d3.queue()
-				.defer(d3.json, "data/municipios_sab.json")
-				.defer(d3.csv,  "data/municipios_sab.csv")
-				.defer(d3.csv,  "data/info_agua_tratado.csv")
-				.await(draw);
+    var consumoScale = d3.scaleThreshold();
+		var tratadoScale = d3.scaleThreshold();
+		var esgotoTratadoScale = d3.scaleThreshold();
 
-	    function draw(error, sab, municipios_sab, dados) {
-	      if (error) throw error;
+		consumoScale
+		.domain([					0 				  	 ,											109.61,											224.08,										 494.26,									  	20993])
+			.range([d3.rgb(255, 210, 49, 0.2), d3.rgb(255, 210, 49, 0.4), d3.rgb(255, 210, 49, 0.6), d3.rgb(255, 210, 49, 0.8), d3.rgb(255, 210, 49, 1)]);
 
-	      var municipios = topojson.feature(sab, sab.objects.municipios_sab);
-	      svg.selectAll(".municipio")
-	        .data(municipios.features)
-	      	.enter().append("path")
-	        .attr("id", function(d) {
-						var test =  ""+d.properties.ID;
-						return "municipio-" + test.slice(0,6); })
-	        .attr("d", path)
-					.style("opacity", 0.4);
+		tratadoScale
+		.domain([					0 				  	 ,											147.54,											331.59,										 729.89,									  	35389.53])
+			.range([d3.rgb(34, 185, 187, 0.2), d3.rgb(34, 185, 187, 0.4), d3.rgb(34, 185, 187, 0.6), d3.rgb(34, 185, 187, 0.8), d3.rgb(34, 185, 187, 1)]);
+
+		esgotoTratadoScale
+		.domain([					0 				  	 ,											0,											55.86,										 183.26,									  	15434.99])
+			.range([d3.rgb(0, 204, 102, 0.2), d3.rgb(0, 204, 102, 0.4), d3.rgb(0, 204, 102, 0.6), d3.rgb(0, 204, 102, 0.8), d3.rgb(0, 204, 102, 1)]);
+
+		d3.queue()
+			.defer(d3.json, "data/municipios_sab.json")
+			.defer(d3.csv,  "data/municipios_sab.csv")
+			.defer(d3.csv,  "data/info_agua_tratado.csv")
+			.defer(d3.csv,  "data/info_esgoto_tratado.csv")
+			.await(draw);
+
+    function draw(error, sab, municipios_sab, dados,esgoto) {
+      if (error) throw error;
+
+      var municipios = topojson.feature(sab, sab.objects.municipios_sab);
+      svgConsumo.selectAll(".municipio")
+        .data(municipios.features)
+      	.enter().append("path")
+        .attr("id", function(d) {
+					var test =  ""+d.properties.ID;
+					return "municipio-consumo-" + test.slice(0,6); })
+        .attr("d", path)
+				.style("opacity", 0.4);
+
+			svgTratado.selectAll(".municipio")
+        .data(municipios.features)
+      	.enter().append("path")
+        .attr("id", function(d) {
+					var test =  ""+d.properties.ID;
+					return "municipio-tratado-" + test.slice(0,6); })
+        .attr("d", path)
+				.style("opacity", 0.4);
+
+			svgEsgotoTratado.selectAll(".municipio")
+        .data(municipios.features)
+      	.enter().append("path")
+        .attr("id", function(d) {
+					var test =  ""+d.properties.ID;
+					return "municipio-esgoto-tratado-" + test.slice(0,6); })
+        .attr("d", path)
+				.style("opacity", 0.4);
 
 
-				for(i = 0; i < dados.length; i++) {
+			for(i = 0; i < dados.length; i++) {
+				 if(dados[i].consumido != "NA") {
+					 	svgConsumo.select("#municipio-consumo-" +dados[i].municipio).attr("fill",consumoScale(+dados[i].consumido));
+				 }
 
-					 if(dados[i].consumido != "NA") {
-		 					//console.log(demandaScale(+dados[i].consumido));
-						 	svg.select("#municipio-" +dados[i].municipio).attr("fill",demandaScale(+dados[i].consumido));
-					 }else {
-						 // console.log(dados[i].municipio);
-					 }
+				 if(dados[i].produzida != "NA") {
+					 	svgTratado.select("#municipio-tratado-" +dados[i].municipio).attr("fill",tratadoScale(+dados[i].tratada));
+				 }
+			}
 
-				}
-	    }
+			for(i = 0; i < esgoto.length; i++) {
+				 if(esgoto[i].tratado != "NA") {
+					 	svgEsgotoTratado.select("#municipio-esgoto-tratado-" +esgoto[i].municipio).attr("fill",esgotoTratadoScale(+esgoto[i].tratado));
+				 }
+
+			}
+    }
 
 	</script>
 
