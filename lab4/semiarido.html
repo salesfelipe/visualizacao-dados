@@ -18,43 +18,37 @@
       stroke-width: 0.8px;
     }
     body {
-    	/background-color: #393E46; 
+
+			background-color: #393E46;
     }
-     
+
+		.container {
+			background-color: #F3F3F4;
+		}
+
+		h3 {
+			color: #00ADB5;
+		}
+
 	</style>
 </head>
 <body>
 
 	<div class="container">
+		<h3> Versão original: </h3>
 
-		<a href="index.html" class="sidebar-btn"><span class="icon-return"></span> Voltar</a>
+    <div class="row">
+        <div class="col-md-3"></div>
 
-		<div class="header">
-			<div class="row">
-				<div class="col-xs-10">
-					<h2>Choropleth + dados externos</h2>
-				</div>
-				<div class="col-xs-2 text-right">
-					<a href="https://github.com/jeffersonrpn/d3/blob/master/map.html" target="_blank" class="btn btn-link"><span class="icon-code"></span></a>
-					<a href="https://bl.ocks.org/mbostock/4060606" target="_blank" class="btn btn-link"><span class="icon-link-external"></span></a>
-				</div>
-			</div>
-		</div>
-		<header>
-			<h1>População x Demanda de água</h1>
-		</header>
+        <div class="col-md-6">
+        	<div id="chart"></div>
+        </div>
 
-		<div id="chart"></div>
+        <div class="col-md-3"></div>
+    </div>
 
-		<div class="section">
-			<h3>Referências</h3>
-			<ul class="list-unstyled">
-				<li><a href="https://bl.ocks.org/mbostock/4060606" target="_blank">Exemplo base <span class="icon-link-external"></span></a></li>
-			</ul>
-		</div>
+
 	</div>
-
-	<footer></footer>
 
 	<!-- scripts -->
 	<script src="../js/d3.v4.min.js"></script>
@@ -81,24 +75,42 @@
 
 	    var path = d3.geoPath().projection(projection);
 
-	    var populacaoScale = d3.scaleThreshold();
 	    var demandaScale = d3.scaleThreshold();
+
+			demandaScale
+			.domain([					0 				  	 ,											79,											158,										 317,									  	625, 									  1250, 									 2500,									  5000, 								  10000, 20000])
+				.range([d3.rgb(255, 210, 49, 0.1), d3.rgb(255, 210, 49, 0.2), d3.rgb(255, 210, 49, 0.3), d3.rgb(255, 210, 49, 0.4), d3.rgb(255, 210, 49, 0.5), d3.rgb(255, 210, 49, 0.6), d3.rgb(255, 210, 49, 0.7), d3.rgb(255, 210, 49, 0.8), d3.rgb(255, 210, 49, 0.9), d3.rgb(255, 210, 49, 1)]);
 
 			d3.queue()
 				.defer(d3.json, "data/municipios_sab.json")
 				.defer(d3.csv,  "data/municipios_sab.csv")
+				.defer(d3.csv,  "data/info_agua_tratado.csv")
 				.await(draw);
 
-	    function draw(error, sab, municipios_sab) {
+	    function draw(error, sab, municipios_sab, dados) {
 	      if (error) throw error;
 
 	      var municipios = topojson.feature(sab, sab.objects.municipios_sab);
-
 	      svg.selectAll(".municipio")
 	        .data(municipios.features)
 	      	.enter().append("path")
-	        .attr("class", function(d) { return "municipio " + d.id; })
-	        .attr("d", path);
+	        .attr("id", function(d) {
+						var test =  ""+d.properties.ID;
+						return "municipio-" + test.slice(0,6); })
+	        .attr("d", path)
+					.style("opacity", 0.4);
+
+
+				for(i = 0; i < dados.length; i++) {
+
+					 if(dados[i].consumido != "NA") {
+		 					//console.log(demandaScale(+dados[i].consumido));
+						 	svg.select("#municipio-" +dados[i].municipio).attr("fill",demandaScale(+dados[i].consumido));
+					 }else {
+						 // console.log(dados[i].municipio);
+					 }
+
+				}
 	    }
 
 	</script>
