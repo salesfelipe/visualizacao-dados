@@ -31,9 +31,17 @@
 		  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
 		}
 
-		h3,h1 {
+		.card-1:hover {
+		  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.21);
+		}
+
+		h3,h1,h5 {
 			color: #ddd9ce;
 			text-align: center;
+		}
+
+		h1 {
+			margin-top: 5%;
 		}
 
 		#verde{
@@ -59,6 +67,8 @@
 		</div>
     <div class="row">
 
+				<h5>* As áreas pretas representam falta de informação sobre aquele munícipio. Quanto mais claro maior a presença daquela variável no município. </h5>
+
         <div class="col-md-4">
 					<h3> Água Consumida </h3>
         	<div class="card card-1" id="chartConsumo"></div>
@@ -73,6 +83,8 @@
 					<h3> Esgoto Tratado </h3>
 					<div class="card card-1" id="chartEsgotoTratado"></div>
 				</div>
+
+
     </div>
 
 
