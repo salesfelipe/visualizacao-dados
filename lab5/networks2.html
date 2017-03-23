@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+	<link rel="icon" href="/favicon.ico" type="image/x-icon">
+	<title>D3</title>
+
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto+Slab" rel="stylesheet">
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/main.css" rel="stylesheet">
+	<link href="css/fonts.css" rel="stylesheet">
+	<style>
+			.node {
+			    fill: #ccc;
+			    stroke: #fff;
+			    stroke-width: 2px;
+			}
+
+			.link {
+					stroke: #999;
+					stroke-opacity: 0.6;
+			}
+    </style>
+</head>
+<body>
+
+	<div class="container">
+
+		<a href="index.html" class="sidebar-btn"><span class="icon-return"></span> Voltar</a>
+
+		<div class="header">
+			<div class="row">
+				<div class="col-xs-10">
+					<h2>Force layout</h2>
+				</div>
+			</div>
+		</div>
+		<ol class="breadcrumb">
+			<li><a href="map.html">Início</a></li>
+			<li><a href="map1.html">1</a></li>
+			<li class="active">2</li>
+			<li><a href="map3.html">3</a></li>
+			<li><a href="map4.html">4</a></li>
+			<li><a href="map5.html">5</a></li>
+		</ol>
+		<header>
+			<h1>Um exemplo mínimo</h1>
+		</header>
+
+		<div id="chart"></div>
+
+		<div class="section">
+			<h3>Referências</h3>
+			<ul class="list-unstyled">
+				<li><a href="https://github.com/d3/d3-geo/blob/master/README.md#azimuthal-projections" target="_blank">Projeções azimutais <span class="icon-link-external"></span></a></li>
+			</ul>
+		</div>
+	</div>
+
+	<footer></footer>
+
+	<!-- scripts -->
+	<script src="js/d3.v4.min.js"></script>
+	<script>
+		var
+		    width = 1000,
+		    height = 500;
+
+		var svg = d3.select("#chart")
+				.append("svg")
+				.attr('version', '1.1')
+				.attr('viewBox', '0 0 '+width+' '+height)
+				.attr('width', '100%');
+
+				var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+
+		 var linkGroups = [
+		  {"source": "1", "target": "1", "index": 1},
+		  {"source": "2", "target": "2", "index": 2},
+		  {"source": "3", "target": "3", "index": 3},
+		  {"source": "4", "target": "4", "index": 4},
+		  {"source": "5", "target": "5", "index": 5},
+		  {"source": "6", "target": "6", "index": 6},
+		  {"source": "7", "target": "7", "index": 7},
+		  {"source": "8", "target": "8", "index": 8}];
+
+		var simulation = d3.forceSimulation()
+		    .force("link", d3.forceLink().id(function(d) { return d.id; }))
+		    .force("charge", d3.forceManyBody())
+		    .force("center", d3.forceCenter(width / 2, height / 2));
+
+		d3.json("miserables.json", function(error, graph) {
+		  if (error) throw error;
+
+			console.dir(graph.links);
+			console.dir(graph.nodes);
+
+
+		  var link = svg.append("g")
+		      .attr("class", "link")
+		    .selectAll("line")
+		    	.data(graph.links)
+		    .enter().append("line");
+
+		  var node = svg.append("g")
+		      .attr("class", "nodes")
+		    .selectAll("circle")
+		    	.data(graph.nodes)
+		    .enter().append("circle")
+		      .attr("r", 5)
+		      .attr("fill", function(d) { return color(d.group); })
+		      .call(d3.drag()
+		          .on("start", dragstarted)
+		          .on("drag", dragged)
+		          .on("end", dragended));
+
+		  node.append("title")
+		      .text(function(d) { return d.id; });
+
+		  simulation
+		      .nodes(graph.nodes)
+		      .on("tick", ticked);
+
+		  simulation.force("link")
+		      .links(graph.links);
+
+		  simulation.force.gravity(10);
+
+		  function ticked() {
+		    link
+		        .attr("x1", function(d) { return d.source.x; })
+		        .attr("y1", function(d) { return d.source.y; })
+		        .attr("x2", function(d) { return d.target.x; })
+		        .attr("y2", function(d) { return d.target.y; });
+
+		    node
+		        .attr("cx", function(d) { return d.x; })
+		        .attr("cy", function(d) { return d.y; });
+		  }
+		});
+
+		function dragstarted(d) {
+		  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+		  d.fx = d.x;
+		  d.fy = d.y;
+		}
+
+		function dragged(d) {
+		  d.fx = d3.event.x;
+		  d.fy = d3.event.y;
+		}
+
+		function dragended(d) {
+		  if (!d3.event.active) simulation.alphaTarget(0);
+		  d.fx = null;
+		  d.fy = null;
+		}
+
+</script>
+
+</body>
+</html>
